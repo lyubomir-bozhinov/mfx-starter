@@ -1,0 +1,56 @@
+{
+  "name": "mfx-starter",
+  "version": "1.0.0",
+  "description": "A no-nonsense module federation starter project to unlock your microfrontends architecture journey",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "start:all": "concurrently \"npm run dev -w mf_host\" \"npm run dev -w mf_provider_angular\" \"npm run dev -w mf_provider_svelte\"",
+    "build:all": "concurrently \"npm run build -w mf_host\" \"npm run build:rs -w mf_provider_angular\" \"npm run build -w mf_provider_svelte\"",
+    "test:all": "concurrently \"npm run test -w mf_host\" \"npm run test -w mf_provider_angular\" \"npm run test -w mf_provider_svelte\"",
+    "lint:all": "concurrently \"npm run lint -w mf_host\" \"npm run lint -w mf_provider_angular\" \"npm run lint -w mf_provider_svelte\"",
+    "format:all": "concurrently \"npm run format -w mf_host\" \"npm run format -w mf_provider_angular\" \"npm run format -w mf_provider_svelte\"",
+    "type-check:all": "concurrently \"npm run type-check -w mf_host\" \"npm run type-check -w mf_provider_angular\" \"npm run type-check -w mf_provider_svelte\"",
+    "clean:all": "concurrently \"npm run clean -w mf_host\" \"npm run clean -w mf_provider_angular\" \"npm run clean -w mf_provider_svelte\" \"npm run clean -w @mfx/shared-utils\" \"npm run clean -w @mfx/ui-components\"",
+    "postinstall": "npm run build -w @mfx/shared-utils && npm run build -w @mfx/ui-components",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "e2e": "npm run build:all && start-server-and-test start:all http://localhost:3000 cy:run"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.10",
+    "concurrently": "8.2.2",
+    "cypress": "13.6.3",
+    "start-server-and-test": "2.0.3",
+    "typescript": "5.3.3"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "microfrontends",
+    "module-federation",
+    "react",
+    "angular",
+    "svelte",
+    "monorepo",
+    "typescript",
+    "rsbuild"
+  ],
+  "author": "Lyubomir Bozhinov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lyubomir-bozhinov/mfx-starter.git"
+  },
+  "homepage": "https://github.com/lyubomir-bozhinov/mfx-starter#readme",
+  "bugs": {
+    "url": "https://github.com/lyubomir-bozhinov/mfx-starter/issues"
+  }
+}
+

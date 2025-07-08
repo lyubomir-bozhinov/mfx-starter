@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@mfx/shared-utils": ["./packages/shared-utils/dist"],
+      "@mfx/shared-utils/*": ["./packages/shared-utils/dist/*"],
+      "@mfx/ui-components": ["./packages/ui-components/dist"],
+      "@mfx/ui-components/*": ["./packages/ui-components/dist/*"]
+    }
+  },
+  "references": [
+    { "path": "./packages/shared-utils" },
+    { "path": "./packages/ui-components" }
+  ]
+}

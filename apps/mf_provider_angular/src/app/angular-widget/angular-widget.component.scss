@@ -1,0 +1,236 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.angular-widget {
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  border: 1px solid $border-color;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+
+  // Theme variants
+  &--dark {
+    background: $gray-800;
+    color: white;
+    border-color: $gray-700;
+
+    .angular-widget__header {
+      background: $gray-900;
+    }
+  }
+
+  // Size variants
+  &--small {
+    .angular-widget__content {
+      padding: 1rem;
+    }
+  }
+
+  &--large {
+    .angular-widget__content {
+      padding: 2rem;
+    }
+  }
+
+  // Variant styles
+  &--primary {
+    border-color: $primary-color;
+
+    .angular-widget__header {
+      background: linear-gradient(135deg, $primary-color, $primary-dark);
+    }
+  }
+
+  &--secondary {
+    border-color: $secondary-color;
+
+    .angular-widget__header {
+      background: linear-gradient(135deg, $secondary-color, darken($secondary-color, 10%));
+    }
+  }
+}
+
+.angular-widget__header {
+  background: linear-gradient(135deg, $primary-color, $primary-dark);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.angular-widget__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.angular-widget__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $gray-400;
+  transition: background-color 0.3s ease;
+
+  &--active {
+    background: $success-color;
+    box-shadow: 0 0 0 2px rgba($success-color, 0.3);
+  }
+}
+
+.angular-widget__content {
+  padding: 1.5rem;
+}
+
+.widget-info {
+  margin-bottom: 1.5rem;
+}
+
+.widget-description {
+  color: $text-secondary;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.widget-data {
+  background: $gray-50;
+  border-radius: $border-radius;
+  padding: 1rem;
+  margin-top: 1rem;
+
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+.data-display {
+  background: white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-sm;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  color: $text-secondary;
+  margin: 0;
+  overflow-x: auto;
+}
+
+.widget-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 500;
+    color: $text-primary;
+    font-size: 0.875rem;
+  }
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.counter-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: $primary-color;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: 0.875rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+}
+
+.widget-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+// Button styles
+.btn {
+  @include button-base;
+
+  &--primary {
+    @include button-variant($primary-color, white);
+  }
+
+  &--secondary {
+    @include button-variant($secondary-color, white);
+  }
+
+  &--outline {
+    @include button-outline($primary-color);
+  }
+
+  &--small {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+.angular-widget__footer {
+  background: $gray-50;
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid $border-color;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: $text-secondary;
+}
+
+.framework-info {
+  font-weight: 500;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .angular-widget__header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .widget-actions {
+    flex-direction: column;
+  }
+
+  .counter-controls {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .navigation-link {
+    @apply px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ease-in-out;
+  }
+  .navigation-link-active {
+    @apply bg-primary-100 text-primary-700;
+  }
+  .navigation-link-inactive {
+    @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900;
+  }
+  .mfe-container {
+    @apply bg-white shadow-lg rounded-lg p-6 border border-gray-200;
+  }
+  .mfe-header {
+    @apply text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200;
+  }
+}

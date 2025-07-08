@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFX Host - Microfrontends Starter</title>
+  <meta name="description" content="A no-nonsense module federation starter project to unlock your microfrontends architecture journey">
+  
+  <!-- 
+    Content Security Policy (CSP) Headers Configuration:
+    The following CSP directives should be configured on the server:
+    
+    script-src 'self' 'unsafe-inline' 
+      http://localhost:3001 http://localhost:3002 
+      https://your-angular-mfe-cdn.com https://your-svelte-mfe-cdn.com;
+    
+    connect-src 'self' 
+      http://localhost:3001 http://localhost:3002 
+      https://your-api-gateway.com;
+    
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    font-src 'self' https://fonts.gstatic.com;
+  -->
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

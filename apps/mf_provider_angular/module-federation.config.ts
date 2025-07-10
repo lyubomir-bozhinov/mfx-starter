@@ -4,7 +4,10 @@ export default createModuleFederationConfig({
   name: 'mf_provider_angular',
   exposes: {
     './AngularWidget': './src/app/angular-widget/angular-widget.component.ts',
-    './AngularRoutes': './src/app/angular-routes/angular-routes.routes.ts',
+    './AngularRoutes': './src/app/angular-routes/angular-routes-entry.component.ts',
+
+    './mountAngularComponent': './src/bootstrap-mfe.ts',
+    './unmountAngularComponent': './src/bootstrap-mfe.ts',
   },
   shared: {
     '@angular/core': {

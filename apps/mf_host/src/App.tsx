@@ -1,10 +1,11 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore, i18nInstance } from '@mfx/shared-utils';
 import { GlobalNotification, ErrorBoundary, LoadingSpinner, Button } from '@mfx/ui-components';
 import { Menu, Home, User, LogOut, Globe } from 'lucide-react';
 import ErrorBoundaryComponent from './components/ErrorBoundary';
+import AngularWrapper from './components/AngularWrapper';
 import { loadRemote } from '@module-federation/enhanced/runtime';
 
 // Helper function for fallbacks (to keep the code cleaner)
@@ -16,43 +17,6 @@ const getFallback = (name) => () => (
       <p className="text-gray-600">The {name} microfrontend is currently unavailable. Please try again later.</p>
     </div>
   </div>
-);
-
-
-const AngularWidget = React.lazy(() =>
-  loadRemote('mf_provider_angular/AngularWidget')
-    .then((module) => {
-      // Check if the component exists in the loaded module.
-      if (module.AngularWidgetComponent) {
-        return { default: module.AngularWidgetComponent };
-      }
-console.log('Angular WIdget', module)
-      // If module.AngularWidget is undefined, return the fallback module.
-      console.error('AngularWidget component not found in remote module.');
-      return { default: getFallback('Angular Widget') };
-    })
-    .catch((error) => {
-      // Catch network errors or other loading failures
-      console.error('Failed to load AngularWidget remote module:', error);
-      return { default: getFallback('Angular Widget') };
-    })
-);
-
-const AngularRoutes = React.lazy(() =>
-  loadRemote('mf_provider_angular/AngularRoutes')
-    .then((module) => {
-      // Check if the component exists
-      if (module.AngularRoutes) {
-        return { default: module.AngularRoutes };
-      }
-
-      console.error('AngularRoutes component not found in remote module.');
-      return { default: getFallback('Angular Routes') };
-    })
-    .catch((error) => {
-      console.error('Failed to load AngularRoutes remote module:', error);
-      return { default: getFallback('Angular Routes') };
-    })
 );
 
 const SvelteWidget = React.lazy(() =>
@@ -94,6 +58,109 @@ function App() {
   const { t } = useTranslation(); // Removed i18n from destructuring as it's imported directly
   const location = useLocation();
   const { isLoggedIn, user, logout } = useAuthStore();
+
+  const [angularMountFns, setAngularMountFns] = useState({
+    mountAngularComponent: null,
+    unmountAngularComponent: null,
+  });
+  const [angularFnsLoading, setAngularFnsLoading] = useState(true);
+  const [angularFnsError, setAngularFnsError] = useState(null);
+
+  // Load Angular mount/unmount functions once
+  useEffect(() => {
+    loadRemote('mf_provider_angular/mountAngularComponent')
+      .then((module) => {
+        if (typeof module.mountAngularComponent === 'function') {
+          setAngularMountFns({
+            mountAngularComponent: module.mountAngularComponent,
+            unmountAngularComponent: module.unmountAngularComponent || null,
+          });
+          setAngularFnsLoading(false);
+        } else {
+          const msg = "Angular 'mountAngularComponent' function not found in remote module.";
+          console.error(msg, module);
+          setAngularFnsError(msg);
+          setAngularFnsLoading(false);
+        }
+      })
+      .catch((error) => {
+        const msg = `Failed to load Angular mount functions: ${error.message}`;
+        console.error(msg, error);
+        setAngularFnsError(msg);
+        setAngularFnsLoading(false);
+      });
+  }, []);
+
+  // Use useMemo to conditionally define the lazy Angular components
+  // They will only be properly defined as React.lazy components once
+  // angularMountFns are loaded. Otherwise, they'll return a fallback.
+  const AngularWidget = useMemo(() => {
+    if (angularFnsLoading || angularFnsError) {
+      // If core Angular functions are not ready, return a component that shows loading/error immediately
+      return getFallback('Angular Widget');
+    }
+
+    return React.lazy(async () => {
+      try {
+        // Now that mount functions are ready, load the specific component module
+        const componentModule = await loadRemote(`mf_provider_angular/AngularWidget`);
+
+        if (!componentModule.AngularWidgetComponent) {
+          console.error(`Component 'AngularWidgetComponent' not found in remote module 'AngularWidget'.`);
+          return { default: getFallback('Angular Widget') };
+        }
+
+        return {
+          default: (props) => (
+            <AngularWrapper
+              loadAngularComponentModule={() => Promise.resolve(componentModule)}
+              mountAngularComponentFn={angularMountFns.mountAngularComponent}
+              unmountAngularComponentFn={angularMountFns.unmountAngularComponent}
+              componentExportName="AngularWidgetComponent"
+              {...props}
+            />
+          ),
+        };
+      } catch (error) {
+        console.error(`Failed to load AngularWidget remote module:`, error);
+        return { default: getFallback('Angular Widget') };
+      }
+    });
+  }, [angularFnsLoading, angularFnsError, angularMountFns]); // Dependencies for useMemo
+
+
+  const AngularRoutes = useMemo(() => {
+    if (angularFnsLoading || angularFnsError) {
+      return getFallback('Angular Routes');
+    }
+
+    return React.lazy(async () => {
+      try {
+        const componentModule = await loadRemote(`mf_provider_angular/AngularRoutes`);
+
+        if (!componentModule.AngularRoutesEntryComponent) {
+          console.error(`Component 'AngularRoutesComponent' not found in remote module 'AngularRoutes'.`);
+          return { default: getFallback('Angular Routes') };
+        }
+
+        return {
+          default: (props) => (
+            <AngularWrapper
+              loadAngularComponentModule={() => Promise.resolve(componentModule)}
+              mountAngularComponentFn={angularMountFns.mountAngularComponent}
+              unmountAngularComponentFn={angularMountFns.unmountAngularComponent}
+              componentExportName="AngularRoutesEntryComponent"
+              {...props}
+            />
+          ),
+        };
+      } catch (error) {
+        console.error(`Failed to load AngularRoutes remote module:`, error);
+        return { default: getFallback('Angular Routes') };
+      }
+    });
+  }, [angularFnsLoading, angularFnsError, angularMountFns]);
+
 
   const handleLanguageChange = (lang: string) => {
     i18nInstance.changeLanguage(lang); // Use i18nInstance directly

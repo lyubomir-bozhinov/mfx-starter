@@ -5,6 +5,9 @@ export default createModuleFederationConfig({
   exposes: {
     './SvelteWidget': './src/lib/SvelteWidget.svelte',
     './SvelteRoutes': './src/routes/SvelteRoutes.svelte',
+
+    './mountSvelteComponent': './src/bootstrap-svelte.js',
+    './styles': './src/app.css',
   },
   shared: {
     svelte: {

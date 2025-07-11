@@ -6,9 +6,9 @@ import { GlobalNotification, ErrorBoundary, LoadingSpinner, Button } from '@mfx/
 import { Menu, Home, User, LogOut, Globe } from 'lucide-react';
 import ErrorBoundaryComponent from './components/ErrorBoundary';
 import AngularWrapper from './components/AngularWrapper';
+import SvelteWrapper from './components/SvelteWrapper';
 import { loadRemote } from '@module-federation/enhanced/runtime';
 
-// Helper function for fallbacks (to keep the code cleaner)
 const getFallback = (name) => () => (
   <div className="mfe-container">
     <div className="text-center py-8">
@@ -19,43 +19,8 @@ const getFallback = (name) => () => (
   </div>
 );
 
-const SvelteWidget = React.lazy(() =>
-  loadRemote('mf_provider_svelte/SvelteWidget')
-    .then((module) => {
-      // Check if the component exists in the loaded module.
-        return { default: module.default };
-console.log('svelte module', module);
-      // If module.SvelteWidget is undefined, return the fallback module.
-      console.error('SvelteWidget component not found in remote module.');
-      return { default: getFallback('Svelte Widget') };
-    })
-    .catch((error) => {
-      // Catch network errors or other loading failures
-      console.error('Failed to load SvelteWidget remote module:', error);
-      return { default: getFallback('Svelte Widget') };
-    })
-);
-
-const SvelteRoutes = React.lazy(() =>
-  loadRemote('mf_provider_svelte/SvelteRoutes')
-    .then((module) => {
-      // Check if the component exists
-      if (module.SvelteRoutes) {
-        return { default: module.SvelteRoutes };
-      }
-
-      console.error('SvelteRoutes component not found in remote module.');
-      return { default: getFallback('Svelte Routes') };
-    })
-    .catch((error) => {
-      console.error('Failed to load SvelteRoutes remote module:', error);
-      return { default: getFallback('Svelte Routes') };
-    })
-);
-
-
 function App() {
-  const { t } = useTranslation(); // Removed i18n from destructuring as it's imported directly
+  const { t } = useTranslation();
   const location = useLocation();
   const { isLoggedIn, user, logout } = useAuthStore();
 
@@ -66,7 +31,12 @@ function App() {
   const [angularFnsLoading, setAngularFnsLoading] = useState(true);
   const [angularFnsError, setAngularFnsError] = useState(null);
 
-  // Load Angular mount/unmount functions once
+  const [svelteMountFns, setSvelteMountFns] = useState({
+    mountSvelteComponent: null,
+  });
+  const [svelteFnsLoading, setSvelteFnsLoading] = useState(true);
+  const [svelteFnsError, setSvelteFnsError] = useState(null);
+
   useEffect(() => {
     loadRemote('mf_provider_angular/mountAngularComponent')
       .then((module) => {
@@ -91,18 +61,50 @@ function App() {
       });
   }, []);
 
-  // Use useMemo to conditionally define the lazy Angular components
-  // They will only be properly defined as React.lazy components once
-  // angularMountFns are loaded. Otherwise, they'll return a fallback.
+  useEffect(() => {
+    loadRemote('mf_provider_svelte/mountSvelteComponent')
+      .then((module) => {
+        if (typeof module.mountSvelteComponent === 'function') {
+          setSvelteMountFns({
+            mountSvelteComponent: module.mountSvelteComponent,
+          });
+          setSvelteFnsLoading(false);
+        } else {
+          const msg = "Svelte 'mountSvelteComponent' function not found in remote module.";
+          console.error(msg, module);
+          setSvelteFnsError(msg);
+          setSvelteFnsLoading(false);
+        }
+      })
+      .catch((error) => {
+        const msg = `Failed to load Svelte mount functions: ${error.message}`;
+        console.error(msg, error);
+        setSvelteFnsError(msg);
+        setSvelteFnsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    const loadSvelteGlobalCss = async () => {
+      try {
+        await loadRemote('mf_provider_svelte/styles');
+        console.log('Svelte global CSS loaded successfully.');
+      } catch (error) {
+        console.error('Failed to load Svelte global CSS:', error);
+      }
+    };
+
+    loadSvelteGlobalCss();
+  }, []);
+
+
   const AngularWidget = useMemo(() => {
     if (angularFnsLoading || angularFnsError) {
-      // If core Angular functions are not ready, return a component that shows loading/error immediately
       return getFallback('Angular Widget');
     }
 
     return React.lazy(async () => {
       try {
-        // Now that mount functions are ready, load the specific component module
         const componentModule = await loadRemote(`mf_provider_angular/AngularWidget`);
 
         if (!componentModule.AngularWidgetComponent) {
@@ -126,7 +128,7 @@ function App() {
         return { default: getFallback('Angular Widget') };
       }
     });
-  }, [angularFnsLoading, angularFnsError, angularMountFns]); // Dependencies for useMemo
+  }, [angularFnsLoading, angularFnsError, angularMountFns]);
 
 
   const AngularRoutes = useMemo(() => {
@@ -139,7 +141,7 @@ function App() {
         const componentModule = await loadRemote(`mf_provider_angular/AngularRoutes`);
 
         if (!componentModule.AngularRoutesEntryComponent) {
-          console.error(`Component 'AngularRoutesComponent' not found in remote module 'AngularRoutes'.`);
+          console.error(`Component 'AngularRoutesEntryComponent' not found in remote module 'AngularRoutes'.`);
           return { default: getFallback('Angular Routes') };
         }
 
@@ -161,9 +163,87 @@ function App() {
     });
   }, [angularFnsLoading, angularFnsError, angularMountFns]);
 
+  const svelteWidgetItems = useMemo(() => [
+    { id: 1, name: "Item 1", status: "active" },
+    { id: 2, name: "Item 2", status: "pending" }
+  ], []);
+
+  const svelteWidgetConfig = useMemo(() => ({
+    theme: 'light',
+    showHeader: true
+  }), []);
+
+  const memoizedSvelteWidgetProps = useMemo(() => ({
+    title: "Svelte Component",
+    items: svelteWidgetItems,
+    config: svelteWidgetConfig,
+  }), [svelteWidgetItems, svelteWidgetConfig]);
+
+
+  const SvelteWidget = useMemo(() => {
+    return React.lazy(async () => {
+      if (svelteFnsLoading || svelteFnsError) {
+        return { default: getFallback('Svelte Widget') };
+      }
+      try {
+        const componentModule = await loadRemote('mf_provider_svelte/SvelteWidget');
+        const SvelteComponent = componentModule.default;
+
+        if (!SvelteComponent) {
+          console.error(`Component 'SvelteWidget' default export not found in remote module.`);
+          return { default: getFallback('Svelte Widget') };
+        }
+
+        return {
+          default: (props) => (
+            <SvelteWrapper
+              SvelteComponent={SvelteComponent}
+              mountSvelteComponentFn={svelteMountFns.mountSvelteComponent}
+              {...memoizedSvelteWidgetProps}
+              {...props}
+            />
+          ),
+        };
+      } catch (error) {
+        console.error('Failed to load SvelteWidget remote module:', error);
+        return { default: getFallback('Svelte Widget') };
+      }
+    });
+  }, [svelteFnsLoading, svelteFnsError, svelteMountFns, memoizedSvelteWidgetProps]);
+
+  const SvelteRoutes = useMemo(() => {
+    return React.lazy(async () => {
+      if (svelteFnsLoading || svelteFnsError) {
+        return { default: getFallback('Svelte Routes') };
+      }
+      try {
+        const componentModule = await loadRemote('mf_provider_svelte/SvelteRoutes');
+        const SvelteComponent = componentModule.default;
+
+        if (!SvelteComponent) {
+          console.error(`Component 'SvelteRoutes' default export not found in remote module.`);
+          return { default: getFallback('Svelte Routes') };
+        }
+
+        return {
+          default: (props) => (
+            <SvelteWrapper
+              SvelteComponent={SvelteComponent}
+              mountSvelteComponentFn={svelteMountFns.mountSvelteComponent}
+              {...props}
+            />
+          ),
+        };
+      } catch (error) {
+        console.error('Failed to load SvelteRoutes remote module:', error);
+        return { default: getFallback('Svelte Routes') };
+      }
+    });
+  }, [svelteFnsLoading, svelteFnsError, svelteMountFns]);
+
 
   const handleLanguageChange = (lang: string) => {
-    i18nInstance.changeLanguage(lang); // Use i18nInstance directly
+    i18nInstance.changeLanguage(lang);
   };
 
   const handleLogout = () => {
@@ -176,11 +256,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo and Title */}
             <div className="flex items-center">
               <Menu className="h-8 w-8 text-primary-600 mr-3" />
               <div>
@@ -189,7 +267,6 @@ function App() {
               </div>
             </div>
 
-            {/* Navigation Links */}
             <nav className="hidden md:flex space-x-1">
               <Link
                 to="/"
@@ -224,9 +301,7 @@ function App() {
               </Link>
             </nav>
 
-            {/* User Actions */}
             <div className="flex items-center space-x-4">
-              {/* Language Selector */}
               <div className="flex items-center space-x-2">
                 <Globe className="w-4 h-4 text-gray-500" />
                 <select
@@ -240,7 +315,6 @@ function App() {
                 </select>
               </div>
 
-              {/* User Menu */}
               {isLoggedIn && user ? (
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
@@ -267,7 +341,6 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ErrorBoundary>
           <Suspense fallback={
@@ -277,7 +350,6 @@ function App() {
             </div>
           }>
             <Routes>
-              {/* Home Page */}
               <Route path="/" element={
                 <div className="space-y-8">
                   <div className="text-center">
@@ -291,7 +363,6 @@ function App() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
-                    {/* Angular Widget */}
                     <ErrorBoundaryComponent>
                       <div className="mfe-container">
                         <h3 className="mfe-header">{t('mfe.angular.title')}</h3>
@@ -305,18 +376,12 @@ function App() {
                       </div>
                     </ErrorBoundaryComponent>
 
-                    {/* Svelte Widget */}
                     <ErrorBoundaryComponent>
                       <div className="mfe-container">
                         <h3 className="mfe-header">{t('mfe.svelte.title')}</h3>
                         <Suspense fallback={<LoadingSpinner />}>
                           <SvelteWidget
-                            title="Svelte Component"
-                            items={[
-                              { id: 1, name: "Item 1", status: "active" },
-                              { id: 2, name: "Item 2", status: "pending" }
-                            ]}
-                            config={{ theme: 'light', showHeader: true }}
+                            {...memoizedSvelteWidgetProps}
                           />
                         </Suspense>
                       </div>
@@ -325,7 +390,6 @@ function App() {
                 </div>
               } />
 
-              {/* Angular Routes */}
               <Route path="/angular/*" element={
                 <ErrorBoundaryComponent>
                   <Suspense fallback={
@@ -338,7 +402,6 @@ function App() {
                 </ErrorBoundaryComponent>
               } />
 
-              {/* Svelte Routes */}
               <Route path="/svelte/*" element={
                 <ErrorBoundaryComponent>
                   <Suspense fallback={
@@ -351,7 +414,6 @@ function App() {
                 </ErrorBoundaryComponent>
               } />
 
-              {/* 404 Page */}
               <Route path="*" element={
                 <div className="text-center py-12">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">Page Not Found</h2>
@@ -369,10 +431,10 @@ function App() {
         </ErrorBoundary>
       </main>
 
-      {/* Global Notification System */}
       <GlobalNotification position="top-right" />
     </div>
   );
 }
 
 export default App;
+

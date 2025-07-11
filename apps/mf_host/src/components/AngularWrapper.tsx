@@ -1,4 +1,3 @@
-// src/components/AngularWrapper.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { LoadingSpinner } from '@mfx/ui-components';
 

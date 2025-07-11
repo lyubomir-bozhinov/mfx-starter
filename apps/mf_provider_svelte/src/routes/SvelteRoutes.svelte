@@ -11,9 +11,9 @@
    * - Route parameters and query handling
    */
 
-  export let basePath = '/svelte';
+  export let basePath = '/svelte'; // Prop passed from the host
 
-  let currentRoute = 'profile';
+  let currentRoute = 'profile'; // Default internal route
   let routeParams = {};
 
   // Sample data
@@ -32,24 +32,96 @@
     timezone: 'UTC'
   };
 
-  onMount(() => {
-    // Initialize routing based on current URL
-    const path = window.location.pathname;
-    if (path.includes('/profile')) {
-      currentRoute = 'profile';
-    } else if (path.includes('/settings')) {
-      currentRoute = 'settings';
+  /**
+   * Ensures the base path is consistently formatted without a trailing slash,
+   * unless it's the root path "/".
+   */
+  function getEffectiveBasePath() {
+    if (basePath === '/') {
+      return ''; // For root path, no prefix needed
     }
-  });
+    return basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+  }
 
+  /**
+   * Navigates to an internal Svelte route and updates the browser URL.
+   * @param {string} route The internal route name (e.g., 'profile', 'settings').
+   * @param {object} params Optional route parameters.
+   */
   function navigateTo(route, params = {}) {
     currentRoute = route;
     routeParams = params;
 
-    // Update URL without page reload (in a real app, you'd use a proper router)
-    const newPath = `${basePath}/${route}`;
-    window.history.pushState({}, '', newPath);
+    const effectiveBasePath = getEffectiveBasePath();
+    const newPath = `${effectiveBasePath}/${route}`;
+
+    // Only push state if the URL actually changes to avoid unnecessary history entries
+    if (window.location.pathname !== newPath) {
+      window.history.pushState({}, '', newPath);
+      console.log(`[Svelte Routes] Navigated to: ${newPath}`);
+    }
   }
+
+  onMount(() => {
+    const fullPath = window.location.pathname;
+    const effectiveBasePath = getEffectiveBasePath();
+
+    // Calculate the path segment relative to the microfrontend's base path
+    let relativePath = '';
+    if (fullPath.startsWith(effectiveBasePath)) {
+      relativePath = fullPath.substring(effectiveBasePath.length);
+      // Remove leading slash if present for consistent internal matching
+      if (relativePath.startsWith('/')) {
+        relativePath = relativePath.substring(1);
+      }
+    }
+
+    // Determine the initial route based on the relative path
+    if (relativePath.startsWith('profile')) {
+      currentRoute = 'profile';
+    } else if (relativePath.startsWith('settings')) {
+      currentRoute = 'settings';
+    } else {
+      // If no specific sub-route is matched, or if at the base path (e.g., /svelte),
+      // default to 'profile'.
+      currentRoute = 'profile';
+      // If the current URL is exactly the base path (e.g., /svelte or /svelte/),
+      // trigger a navigation to the default route to update the URL.
+      if (fullPath === effectiveBasePath || fullPath === `${effectiveBasePath}/`) {
+        navigateTo('profile');
+      }
+    }
+    console.log(`[Svelte Routes] Mounted. Base path: ${basePath}, Full path: ${fullPath}, Initial route: ${currentRoute}`);
+
+    // Listen for browser history changes (e.g., back/forward buttons)
+    const handlePopState = () => {
+      const currentFullPath = window.location.pathname;
+      let currentRelativePath = '';
+      if (currentFullPath.startsWith(effectiveBasePath)) {
+        currentRelativePath = currentFullPath.substring(effectiveBasePath.length);
+        if (currentRelativePath.startsWith('/')) {
+          currentRelativePath = currentRelativePath.substring(1);
+        }
+      }
+
+      // Update currentRoute based on the new URL from popstate
+      if (currentRelativePath.startsWith('profile')) {
+        currentRoute = 'profile';
+      } else if (currentRelativePath.startsWith('settings')) {
+        currentRoute = 'settings';
+      } else {
+        currentRoute = 'profile'; // Fallback to default if path is unrecognized
+      }
+      console.log(`[Svelte Routes] Popstate event. New route: ${currentRoute}`);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  });
 
   function updateProfile(field, value) {
     userProfile = { ...userProfile, [field]: value };
@@ -62,6 +134,19 @@
   function saveChanges() {
     console.log('Saving changes...', { userProfile, settings });
     // In a real app, this would make an API call
+  }
+
+  function getStatusBadgeClass(status) {
+    switch (status) {
+      case 'active':
+        return 'status-badge status-badge-active';
+      case 'pending':
+        return 'status-badge status-badge-pending';
+      case 'inactive':
+        return 'status-badge status-badge-inactive';
+      default:
+        return 'status-badge status-badge-inactive';
+    }
   }
 </script>
 
@@ -311,3 +396,4 @@
     </div>
   </div>
 </div>
+

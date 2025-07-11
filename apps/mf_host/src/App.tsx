@@ -397,7 +397,7 @@ function App() {
                       <LoadingSpinner size="lg" />
                     </div>
                   }>
-                    <AngularRoutes basePath="/angular" />
+                    <AngularRoutes basePath="/angular/" />
                   </Suspense>
                 </ErrorBoundaryComponent>
               } />

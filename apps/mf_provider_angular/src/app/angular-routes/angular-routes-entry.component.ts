@@ -1,8 +1,15 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, RouterModule } from '@angular/router';
+import { RouterOutlet, Routes, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { SettingsComponent } from './settings/settings.component';
+
+// Define the routes specific to this Angular microfrontend's routing entry point
+export const ANGULAR_MFE_ROUTES: Routes = [
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'settings', component: SettingsComponent },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' } // Default child route for this MFE
+];
 
 @Component({
   standalone: true,
@@ -13,10 +20,11 @@ import { SettingsComponent } from './settings/settings.component';
       <nav class="mb-4">
         <ul class="flex space-x-4">
           <li>
-            <a [routerLink]="['./dashboard']" class="text-blue-500 hover:underline">Dashboard</a>
+            <!-- routerLink paths are relative to the current activated route -->
+            <a [routerLink]="['./dashboard']" routerLinkActive="text-blue-700 font-semibold" class="text-blue-500 hover:underline">Dashboard</a>
           </li>
           <li>
-            <a [routerLink]="['./settings']" class="text-blue-500[<43;43;4M hover:underline">Settings</a>
+            <a [routerLink]="['./settings']" routerLinkActive="text-blue-700 font-semibold" class="text-blue-500 hover:underline">Settings</a>
           </li>
         </ul>
       </nav>
@@ -26,12 +34,13 @@ import { SettingsComponent } from './settings/settings.component';
   `,
   imports: [
     RouterOutlet,
-    RouterModule,
+    RouterLink,       // Explicitly import RouterLink for standalone components
+    RouterLinkActive, // Explicitly import RouterLinkActive for standalone components
     DashboardComponent,
     SettingsComponent
   ],
   providers: []
 })
-
 export class AngularRoutesEntryComponent {}
+
 

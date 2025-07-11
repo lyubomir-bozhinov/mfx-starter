@@ -1,12 +1,13 @@
 // In your Angular Microfrontend: src/bootstrap-mfe.ts
 import { ApplicationRef, Type, ComponentRef } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Routes } from '@angular/router'; // Import Routes as well
 import { provideHttpClient } from '@angular/common/http';
 import { createApplication } from '@angular/platform-browser';
+import { APP_BASE_HREF } from '@angular/common';
 
 import { AngularWidgetComponent } from './app/angular-widget/angular-widget.component';
 import { AngularRoutesEntryComponent } from './app/angular-routes/angular-routes-entry.component';
-import { angularRoutes } from './app/angular-routes/angular-routes.routes'; // Import your route definitions
+import { ANGULAR_MFE_ROUTES } from './app/angular-routes/angular-routes-entry.component'; // Import ANGULAR_MFE_ROUTES
 
 const mountedComponentRefs = new Map<HTMLElement, ComponentRef<any>>();
 const applicationRefs = new Map<HTMLElement, ApplicationRef>();
@@ -26,12 +27,20 @@ export async function mountAngularComponent(
     throw new Error('Invalid host element provided for Angular component mounting.');
   }
 
+  const providers = [
+    provideHttpClient(),
+  ];
+
+  // If mounting AngularRoutesEntryComponent, provide its specific routes and base href
+  if (Component === AngularRoutesEntryComponent) {
+    providers.push(provideRouter(ANGULAR_MFE_ROUTES)); // Provide the routes at the application level
+    if (props.basePath) {
+      providers.push({ provide: APP_BASE_HREF, useValue: props.basePath });
+    }
+  }
+
   const appRef = await createApplication({
-    providers: [
-      // Provide the actual angularRoutes here
-      provideRouter(angularRoutes),
-      provideHttpClient(),
-    ],
+    providers: providers,
   });
 
   applicationRefs.set(element, appRef);

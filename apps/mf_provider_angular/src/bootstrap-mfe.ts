@@ -1,13 +1,11 @@
-// In your Angular Microfrontend: src/bootstrap-mfe.ts
-import { ApplicationRef, Type, ComponentRef } from '@angular/core';
-import { provideRouter, Routes } from '@angular/router'; // Import Routes as well
+import { ApplicationRef, Type, ComponentRef, ValueProvider } from '@angular/core'; // Added ValueProvider
+import { provideRouter, Routes } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { createApplication } from '@angular/platform-browser';
 import { APP_BASE_HREF } from '@angular/common';
 
-import { AngularWidgetComponent } from './app/angular-widget/angular-widget.component';
 import { AngularRoutesEntryComponent } from './app/angular-routes/angular-routes-entry.component';
-import { ANGULAR_MFE_ROUTES } from './app/angular-routes/angular-routes-entry.component'; // Import ANGULAR_MFE_ROUTES
+import { ANGULAR_MFE_ROUTES } from './app/angular-routes/angular-routes-entry.component';
 
 const mountedComponentRefs = new Map<HTMLElement, ComponentRef<any>>();
 const applicationRefs = new Map<HTMLElement, ApplicationRef>();
@@ -27,15 +25,16 @@ export async function mountAngularComponent(
     throw new Error('Invalid host element provided for Angular component mounting.');
   }
 
-  const providers = [
+  const providers: Array<any> = [ // Use Array<any> for mixed Provider and EnvironmentProviders
     provideHttpClient(),
   ];
 
   // If mounting AngularRoutesEntryComponent, provide its specific routes and base href
   if (Component === AngularRoutesEntryComponent) {
-    providers.push(provideRouter(ANGULAR_MFE_ROUTES)); // Provide the routes at the application level
+    providers.push(provideRouter(ANGULAR_MFE_ROUTES));
     if (props.basePath) {
-      providers.push({ provide: APP_BASE_HREF, useValue: props.basePath });
+      const baseHrefProvider: ValueProvider = { provide: APP_BASE_HREF, useValue: props.basePath };
+      providers.push(baseHrefProvider);
     }
   }
 
@@ -52,7 +51,7 @@ export async function mountAngularComponent(
     const selector = (Component as any).ɵcmp?.selectors?.[0]?.[0] || 'div';
     angularRootElement = document.createElement(selector);
 
-    element.appendChild(angularRootElement);
+    element.appendChild(angularRootElement!);
 
     componentRef = appRef.bootstrap(Component, angularRootElement);
     mountedComponentRefs.set(element, componentRef);
@@ -60,6 +59,7 @@ export async function mountAngularComponent(
     Object.assign(componentRef.instance, props);
   } catch (e) {
     console.error(`[Angular MFE] Error during appRef.bootstrap for ${Component.name}:`, e);
+    // Add null check before removing child
     if (angularRootElement && element.contains(angularRootElement)) {
       element.removeChild(angularRootElement);
     }
@@ -71,6 +71,7 @@ export async function mountAngularComponent(
   return () => {
     console.log(`[Angular MFE] Destroying Angular component in element:`, element);
     if (componentRef) {
+      // Add null check before removing child
       if (angularRootElement && element.contains(angularRootElement)) {
         element.removeChild(angularRootElement);
       }
@@ -89,6 +90,7 @@ export function unmountAngularComponent(element: HTMLElement) {
   if (componentRef) {
     console.log(`[Angular MFE] Unmounting Angular component from element:`, element);
     const angularRootElement = componentRef.location.nativeElement;
+    // Add null check before removing child
     if (angularRootElement && element.contains(angularRootElement)) {
       element.removeChild(angularRootElement);
     }

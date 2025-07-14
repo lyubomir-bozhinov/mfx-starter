@@ -1,0 +1,17 @@
+{
+  "home": "Home",
+  "login": "Login",
+  "logout": "Logout",
+  "loading": "Loading...",
+  "mfe": {
+    "host": {
+      "title": "Host Application (React)"
+    },
+    "angular": {
+      "title": "Angular Microfrontend"
+    },
+    "svelte": {
+      "title": "Svelte Microfrontend"
+    }
+  }
+}

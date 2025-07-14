@@ -1,0 +1,17 @@
+{
+  "home": "Accueil",
+  "login": "Connexion",
+  "logout": "Déconnexion",
+  "loading": "Chargement...",
+  "mfe": {
+    "host": {
+      "title": "Application Hôte (React)"
+    },
+    "angular": {
+      "title": "Micro-frontend Angular"
+    },
+    "svelte": {
+      "title": "Micro-frontend Svelte"
+    }
+  }
+}

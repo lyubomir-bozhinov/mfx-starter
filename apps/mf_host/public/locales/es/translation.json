@@ -1,0 +1,17 @@
+{
+  "home": "Inicio",
+  "login": "Iniciar sesión",
+  "logout": "Cerrar sesión",
+  "loading": "Cargando...",
+  "mfe": {
+    "host": {
+      "title": "Aplicación Principal (React)"
+    },
+    "angular": {
+      "title": "Microfrontend Angular"
+    },
+    "svelte": {
+      "title": "Microfrontend Svelte"
+    }
+  }
+}

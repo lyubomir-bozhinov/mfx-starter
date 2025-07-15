@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { useAuthStore, AuthState } from '@mfx/shared-utils'; // Import useAuthStore and AuthState
+import { useAuthStore, AuthState, eventDispatcher, EventPayload } from '@mfx/shared-utils'; // Import eventDispatcher and EventPayload
 
 /**
  * Angular Widget Component for Module Federation
@@ -45,9 +45,9 @@ export interface AngularWidgetConfig {
             It demonstrates shared state management and cross-framework communication.
           </p>
 
-          <div class="widget-data" *ngIf="data">
-            <h4>Received Data:</h4>
-            <pre class="data-display">{{ data | json }}</pre>
+          <div class="widget-data">
+            <h4>Current Internal State:</h4>
+            <pre class="data-display">{{ { counter: counter, message: message } | json }}</pre>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ export interface AngularWidgetConfig {
 })
 export class AngularWidgetComponent implements OnInit, OnDestroy {
   @Input() title?: string;
-  @Input() data?: any;
+  @Input() data?: any; // This input will now be primarily for initial data if needed
   @Input() config?: AngularWidgetConfig;
   @Output() onAction = new EventEmitter<{ action: string; data?: any }>();
 
@@ -137,7 +137,6 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
     this.initializeWidget();
 
     // Subscribe to the Zustand store
-    // The listener now receives the full state, and we extract properties.
     this.authStoreUnsubscribe = useAuthStore.subscribe(
       (state: AuthState) => {
         this.isLoggedIn = state.isLoggedIn;
@@ -148,7 +147,7 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
     // Set initial state from Zustand
     const initialState = useAuthStore.getState();
     this.isLoggedIn = initialState.isLoggedIn;
-    this.userName = initialState.userId || ''; // Use userId for display name
+    this.userName = initialState.userId || '';
 
     // Set up periodic updates
     const updateInterval = setInterval(() => {
@@ -171,6 +170,7 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
   }
 
   private initializeWidget() {
+    // Initialize with data if provided (e.g., from host)
     if (this.data?.counter !== undefined) {
       this.counter = this.data.counter;
     }
@@ -182,16 +182,27 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
   incrementCounter() {
     this.counter++;
     this.emitAction('counter_changed', { counter: this.counter });
+    eventDispatcher.dispatchEvent('ANGULAR_WIDGET_ACTION', {
+      action: 'counter_incremented',
+      counter: this.counter,
+      source: 'AngularWidget'
+    });
   }
 
   decrementCounter() {
     if (this.counter > 0) {
       this.counter--;
       this.emitAction('counter_changed', { counter: this.counter });
+      eventDispatcher.dispatchEvent('ANGULAR_WIDGET_ACTION', {
+        action: 'counter_decremented',
+        counter: this.counter,
+        source: 'AngularWidget'
+      });
     }
   }
 
   handleAction(action: string) {
+    console.log(`[AngularWidget] handleAction called with: ${action}`);
     const actionData = {
       action,
       counter: this.counter,
@@ -202,18 +213,37 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
     switch (action) {
       case 'save':
         this.emitAction('save', actionData);
+        console.log('[AngularWidget] Dispatching save_changes event.');
+        eventDispatcher.dispatchEvent('ANGULAR_WIDGET_ACTION', {
+          action: 'save_changes',
+          data: actionData,
+          source: 'AngularWidget'
+        });
         break;
       case 'reset':
         this.counter = 0;
         this.message = '';
         this.emitAction('reset', actionData);
+        console.log('[AngularWidget] Dispatching reset_widget event.');
+        eventDispatcher.dispatchEvent('ANGULAR_WIDGET_ACTION', {
+          action: 'reset_widget',
+          data: actionData,
+          source: 'AngularWidget'
+        });
         break;
       default:
         this.emitAction(action, actionData);
+        console.log(`[AngularWidget] Dispatching generic action event: ${action}.`);
+        eventDispatcher.dispatchEvent('ANGULAR_WIDGET_ACTION', {
+          action: action,
+          data: actionData,
+          source: 'AngularWidget'
+        });
     }
   }
 
   private emitAction(action: string, data?: any) {
+    console.log(`[AngularWidget] Emitting onAction event: ${action}`, data);
     this.onAction.emit({ action, data });
   }
 

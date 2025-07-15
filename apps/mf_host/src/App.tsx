@@ -22,9 +22,8 @@ const getFallback = (name) => () => (
 function App() {
   const { t } = useTranslation();
   const location = useLocation();
-  // Use a selector to ensure the component re-renders when isLoggedIn or user changes
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const user = useAuthStore((state) => state.userId); // Use userId from AuthState
+  const user = useAuthStore((state) => state.userId);
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
 
@@ -125,14 +124,45 @@ function App() {
       dispatchNotification(message, 'info', source);
     };
 
-    // Add the event listener
     eventDispatcher.addEventListener('WIDGET_ITEM_ACTION', handleSvelteWidgetAction);
 
-    // Clean up the event listener on component unmount
     return () => {
       eventDispatcher.removeEventListener('WIDGET_ITEM_ACTION', handleSvelteWidgetAction);
     };
-  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+  }, []);
+
+  // --- Event Listener for Angular Widget Actions ---
+  useEffect(() => {
+    const handleAngularWidgetAction = (event: CustomEvent<EventPayload>) => {
+      console.log('Host App received Angular Widget Action:', event.detail);
+      const { action, counter, message, source } = event.detail.data;
+
+      let notificationMessage = '';
+      switch (action) {
+        case 'counter_incremented':
+          notificationMessage = `Angular Widget counter incremented to ${counter} by ${source}.`;
+          break;
+        case 'counter_decremented':
+          notificationMessage = `Angular Widget counter decremented to ${counter} by ${source}.`;
+          break;
+        case 'save_changes':
+          notificationMessage = `Angular Widget changes saved by ${source}.`;
+          break;
+        case 'reset_widget':
+          notificationMessage = `Angular Widget reset by ${source}.`;
+          break;
+        default:
+          notificationMessage = `Angular Widget performed action: ${action}.`;
+      }
+      dispatchNotification(notificationMessage, 'info', source);
+    };
+
+    eventDispatcher.addEventListener('ANGULAR_WIDGET_ACTION', handleAngularWidgetAction);
+
+    return () => {
+      eventDispatcher.removeEventListener('ANGULAR_WIDGET_ACTION', handleAngularWidgetAction);
+    };
+  }, []);
 
 
   const AngularWidget = useMemo(() => {
@@ -208,7 +238,7 @@ function App() {
   const svelteWidgetConfig = useMemo(() => ({
     theme: 'light',
     showHeader: true,
-    allowEdit: true // <--- Added this line
+    allowEdit: true
   }), []);
 
   const memoizedSvelteWidgetProps = useMemo(() => ({

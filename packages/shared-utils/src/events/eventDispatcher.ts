@@ -1,7 +1,7 @@
 /**
  * Event types for cross-MFE communication
  */
-export type EventType = 
+export type EventType =
   | 'API_ERROR'
   | 'SUCCESS_MESSAGE'
   | 'AUTH_REQUIRED'
@@ -11,8 +11,10 @@ export type EventType =
   | 'ROUTE_CHANGE'
   | 'THEME_CHANGE'
   | 'LANGUAGE_CHANGE'
-  | 'AUTH_LOGIN' // Added AUTH_LOGIN
-  | 'AUTH_LOGOUT'; // Added AUTH_LOGOUT
+  | 'AUTH_LOGIN'
+  | 'AUTH_LOGOUT'
+  | 'WIDGET_ITEM_ACTION' // Added for Svelte Widget actions
+  | 'ANGULAR_WIDGET_ACTION'; // Added for Angular Widget actions
 
 /**
  * Event payload interface
@@ -26,7 +28,7 @@ export interface EventPayload {
 
 /**
  * Event dispatcher class for cross-MFE communication
- * 
+ *
  * This class provides a centralized event system that allows different
  * microfrontends to communicate with each other without tight coupling.
  * It uses the browser's CustomEvent API for fire-and-forget messaging.
@@ -141,3 +143,4 @@ export const dispatchUserLoggedOut = (source?: string) => {
 export const dispatchNotification = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', source?: string) => {
   eventDispatcher.dispatchEvent('NOTIFICATION_SHOW', { message, type }, source);
 };
+

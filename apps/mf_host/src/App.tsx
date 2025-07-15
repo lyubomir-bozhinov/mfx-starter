@@ -1,7 +1,7 @@
 import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, i18nInstance } from '@mfx/shared-utils';
+import { useAuthStore, i18nInstance, eventDispatcher, dispatchNotification, EventPayload } from '@mfx/shared-utils'; // Import eventDispatcher and dispatchNotification
 import { GlobalNotification, ErrorBoundary, LoadingSpinner, Button } from '@mfx/ui-components';
 import { Menu, Home, User, LogOut, Globe } from 'lucide-react';
 import ErrorBoundaryComponent from './components/ErrorBoundary';
@@ -102,6 +102,38 @@ function App() {
     loadSvelteGlobalCss();
   }, []);
 
+  // --- Event Listener for Svelte Widget Actions ---
+  useEffect(() => {
+    const handleSvelteWidgetAction = (event: CustomEvent<EventPayload>) => {
+      console.log('Host App received Svelte Widget Action:', event.detail);
+      const { action, item, removedItem, newStatus, source } = event.detail.data;
+
+      let message = '';
+      switch (action) {
+        case 'add_item':
+          message = `New item "${item.name}" added by ${source}.`;
+          break;
+        case 'update_status':
+          message = `Item ID ${event.detail.data.itemId} status updated to "${newStatus}" by ${source}.`;
+          break;
+        case 'remove_item':
+          message = `Item "${removedItem.name}" removed by ${source}.`;
+          break;
+        default:
+          message = `Svelte Widget performed action: ${action}.`;
+      }
+      dispatchNotification(message, 'info', source);
+    };
+
+    // Add the event listener
+    eventDispatcher.addEventListener('WIDGET_ITEM_ACTION', handleSvelteWidgetAction);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      eventDispatcher.removeEventListener('WIDGET_ITEM_ACTION', handleSvelteWidgetAction);
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+
 
   const AngularWidget = useMemo(() => {
     if (angularFnsLoading || angularFnsError) {
@@ -175,7 +207,8 @@ function App() {
 
   const svelteWidgetConfig = useMemo(() => ({
     theme: 'light',
-    showHeader: true
+    showHeader: true,
+    allowEdit: true // <--- Added this line
   }), []);
 
   const memoizedSvelteWidgetProps = useMemo(() => ({
@@ -255,15 +288,13 @@ function App() {
     logout();
   };
 
-  // Function to handle login action
   const handleLogin = () => {
-    // Simulate a successful login with dummy data
     login(
       'dummy-access-token-123',
       'dummy-refresh-token-abc',
-      'user-12345', // userId
-      ['admin', 'user'], // userRoles
-      3600 // expiresIn (1 hour)
+      'user-12345',
+      ['admin', 'user'],
+      3600
     );
   };
 
@@ -332,11 +363,10 @@ function App() {
                 </select>
               </div>
 
-              {isLoggedIn ? ( // Check only isLoggedIn
+              {isLoggedIn ? (
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-500" />
-                    {/* Display user.userId or user.name if available in AuthState */}
                     <span className="text-sm text-gray-700">{user || 'Guest'}</span>
                   </div>
                   <Button

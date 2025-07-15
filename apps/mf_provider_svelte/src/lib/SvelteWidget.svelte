@@ -1,6 +1,6 @@
 <script lang="js">
-  import { createEventDispatcher, onMount } from 'svelte';
-  import { useAuthStore } from '@mfx/shared-utils'; // Import the shared Zustand store
+  import { onMount } from 'svelte';
+  import { useAuthStore, eventDispatcher } from '@mfx/shared-utils'; // Import eventDispatcher
 
   /**
    * Svelte Widget Component for Module Federation
@@ -20,8 +20,6 @@
     showHeader: true,
     allowEdit: true
   };
-
-  const dispatch = createEventDispatcher();
 
   // Svelte reactive variables to mirror Zustand state
   let isLoggedIn = false;
@@ -44,30 +42,27 @@
     console.log('Svelte Widget mounted with config:', config);
 
     // Subscribe to the Zustand store
-    // The `useAuthStore.subscribe` method returns an unsubscribe function.
     const unsubscribe = useAuthStore.subscribe(
       (state) => {
-        // Update Svelte's local reactive variables when Zustand state changes
         isLoggedIn = state.isLoggedIn;
-        userName = state.userId || ''; // Use userId for display
+        userName = state.userId || '';
       },
-      (state) => [state.isLoggedIn, state.userId] // Selector to only re-run if these specific parts change
+      (state) => [state.isLoggedIn, state.userId]
     );
 
     // Set initial state from Zustand
     const initialState = useAuthStore.getState();
     isLoggedIn = initialState.isLoggedIn;
-    userName = initialState.userId || ''; // Use userId for display
+    userName = initialState.userId || '';
 
     // Set up periodic updates
     const interval = setInterval(() => {
       lastUpdated = new Date();
     }, 30000);
 
-    // Return a cleanup function for onMount
     return () => {
       clearInterval(interval);
-      unsubscribe(); // Unsubscribe from Zustand when component is destroyed
+      unsubscribe();
     };
   });
 
@@ -85,10 +80,12 @@
     newItemName = '';
     newItemDescription = '';
 
-    dispatch('submit', {
+    // Dispatch global event using eventDispatcher
+    eventDispatcher.dispatchEvent('WIDGET_ITEM_ACTION', {
       action: 'add_item',
       item: newItem,
-      totalItems: items.length
+      totalItems: items.length,
+      source: 'SvelteWidget'
     });
   }
 
@@ -97,11 +94,13 @@
       item.id === itemId ? { ...item, status: newStatus } : item
     );
 
-    dispatch('submit', {
+    // Dispatch global event using eventDispatcher
+    eventDispatcher.dispatchEvent('WIDGET_ITEM_ACTION', {
       action: 'update_status',
       itemId,
       newStatus,
-      totalItems: items.length
+      totalItems: items.length,
+      source: 'SvelteWidget'
     });
   }
 
@@ -109,11 +108,13 @@
     const itemToRemove = items.find(item => item.id === itemId);
     items = items.filter(item => item.id !== itemId);
 
-    dispatch('submit', {
+    // Dispatch global event using eventDispatcher
+    eventDispatcher.dispatchEvent('WIDGET_ITEM_ACTION', {
       action: 'remove_item',
       itemId,
       removedItem: itemToRemove,
-      totalItems: items.length
+      totalItems: items.length,
+      source: 'SvelteWidget'
     });
   }
 
@@ -129,7 +130,8 @@
     newItemName = '';
     newItemDescription = '';
     editingItem = null;
-    dispatch('cancel');
+    // dispatch a 'cancel' event if needed, but for now, just local state reset
+    // eventDispatcher.dispatchEvent('WIDGET_ACTION_CANCEL', { source: 'SvelteWidget' });
   }
 
   function handleKeydown(event) {

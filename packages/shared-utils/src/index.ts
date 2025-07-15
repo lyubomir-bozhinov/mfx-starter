@@ -3,7 +3,7 @@ export { useAuthStore } from './stores/authStore';
 export type { AuthState } from './stores/authStore';
 
 // Event Dispatcher
-export { eventDispatcher } from './events/eventDispatcher';
+export { eventDispatcher, dispatchNotification } from './events/eventDispatcher';
 export type { EventPayload, EventType } from './events/eventDispatcher';
 
 // HTTP Client

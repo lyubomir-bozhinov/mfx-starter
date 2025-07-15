@@ -10,7 +10,7 @@ import { mount } from 'svelte';
  * - props: An object of props to pass to the Svelte component.
  * @returns A function to destroy the mounted Svelte component.
  */
-export function mountSvelteComponent(Component: any, options: { target: HTMLElement; props?: Record<string, any> }): () => void {
+export function mountSvelteComponent(Component, options) {
   if (!options.target) {
     console.error('[Svelte MFE] Mount target element is missing.');
     throw new Error('Target element required to mount Svelte component.');

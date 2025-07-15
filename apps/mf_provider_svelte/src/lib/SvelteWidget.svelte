@@ -1,12 +1,13 @@
 <script lang="js">
   import { createEventDispatcher, onMount } from 'svelte';
+  import { useAuthStore } from '@mfx/shared-utils'; // Import the shared Zustand store
 
   /**
    * Svelte Widget Component for Module Federation
    *
    * This component demonstrates:
    * - Integration with shared Zustand state management
-   * - i18next internationalization
+   * - i18next internationalization (implicitly via shared-utils)
    * - Tailwind CSS styling
    * - TypeScript interfaces for props
    * - Event emission for cross-MFE communication
@@ -21,6 +22,10 @@
   };
 
   const dispatch = createEventDispatcher();
+
+  // Svelte reactive variables to mirror Zustand state
+  let isLoggedIn = false;
+  let userName = ''; // Will store userId for display
 
   // Component state
   let newItemName = '';
@@ -38,13 +43,31 @@
   onMount(() => {
     console.log('Svelte Widget mounted with config:', config);
 
+    // Subscribe to the Zustand store
+    // The `useAuthStore.subscribe` method returns an unsubscribe function.
+    const unsubscribe = useAuthStore.subscribe(
+      (state) => {
+        // Update Svelte's local reactive variables when Zustand state changes
+        isLoggedIn = state.isLoggedIn;
+        userName = state.userId || ''; // Use userId for display
+      },
+      (state) => [state.isLoggedIn, state.userId] // Selector to only re-run if these specific parts change
+    );
+
+    // Set initial state from Zustand
+    const initialState = useAuthStore.getState();
+    isLoggedIn = initialState.isLoggedIn;
+    userName = initialState.userId || ''; // Use userId for display
+
     // Set up periodic updates
     const interval = setInterval(() => {
       lastUpdated = new Date();
     }, 30000);
 
+    // Return a cleanup function for onMount
     return () => {
       clearInterval(interval);
+      unsubscribe(); // Unsubscribe from Zustand when component is destroyed
     };
   });
 
@@ -137,6 +160,12 @@
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold">{title}</h3>
         <div class="flex items-center space-x-2">
+          <!-- Display login status and username -->
+          {#if isLoggedIn}
+            <span class="text-sm opacity-90 text-green-500">Logged in as: {userName}</span>
+          {:else}
+            <span class="text-sm opacity-90 text-red-500">Not logged in</span>
+          {/if}
           <span class="text-sm opacity-90">Total: {totalItems}</span>
           <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
         </div>
@@ -291,3 +320,4 @@
     @apply bg-gray-900 border-gray-700;
   }
 </style>
+

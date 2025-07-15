@@ -23,6 +23,10 @@ export default createModuleFederationConfig({
       singleton: true,
       strictVersion: true,
     },
+    '@mfx/shared-utils': {
+      singleton: true,
+      strictVersion: true
+    },
   },
   dts: false,
 });

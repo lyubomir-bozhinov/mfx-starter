@@ -22,7 +22,12 @@ const getFallback = (name) => () => (
 function App() {
   const { t } = useTranslation();
   const location = useLocation();
-  const { isLoggedIn, user, logout } = useAuthStore();
+  // Use a selector to ensure the component re-renders when isLoggedIn or user changes
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const user = useAuthStore((state) => state.userId); // Use userId from AuthState
+  const logout = useAuthStore((state) => state.logout);
+  const login = useAuthStore((state) => state.login);
+
 
   const [angularMountFns, setAngularMountFns] = useState({
     mountAngularComponent: null,
@@ -250,6 +255,18 @@ function App() {
     logout();
   };
 
+  // Function to handle login action
+  const handleLogin = () => {
+    // Simulate a successful login with dummy data
+    login(
+      'dummy-access-token-123',
+      'dummy-refresh-token-abc',
+      'user-12345', // userId
+      ['admin', 'user'], // userRoles
+      3600 // expiresIn (1 hour)
+    );
+  };
+
   const isActiveRoute = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
@@ -315,11 +332,12 @@ function App() {
                 </select>
               </div>
 
-              {isLoggedIn && user ? (
+              {isLoggedIn ? ( // Check only isLoggedIn
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-700">{user.name}</span>
+                    {/* Display user.userId or user.name if available in AuthState */}
+                    <span className="text-sm text-gray-700">{user || 'Guest'}</span>
                   </div>
                   <Button
                     variant="ghost"
@@ -332,7 +350,7 @@ function App() {
                   </Button>
                 </div>
               ) : (
-                <Button variant="primary" size="sm">
+                <Button variant="primary" size="sm" onClick={handleLogin}>
                   {t('login')}
                 </Button>
               )}

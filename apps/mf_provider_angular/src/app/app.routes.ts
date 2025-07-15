@@ -7,4 +7,3 @@ export const routes: Routes = [
   ...angularRoutes,
   { path: '**', redirectTo: '' },
 ];
-

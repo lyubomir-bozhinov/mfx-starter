@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { useAuthStore, AuthState } from '@mfx/shared-utils'; // Import useAuthStore and AuthState
 
 /**
  * Angular Widget Component for Module Federation
@@ -29,8 +30,11 @@ export interface AngularWidgetConfig {
       <div class="angular-widget__header">
         <h3 class="angular-widget__title">{{ title || 'Angular Widget' }}</h3>
         <div class="angular-widget__status">
-          <span class="status-indicator" [class.status-indicator--active]="isActive"></span>
-          <span class="status-text">{{ isActive ? 'Active' : 'Inactive' }}</span>
+          <!-- Display login status and username from Zustand -->
+          <span class="status-indicator" [class.status-indicator--active]="isLoggedIn"></span>
+          <span class="status-text">
+            {{ isLoggedIn ? 'Logged in as: ' + userName : 'Not logged in' }}
+          </span>
         </div>
       </div>
 
@@ -121,12 +125,30 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
   lastUpdated = new Date();
   angularVersion = '20.0.6';
 
+  // Zustand-related state
+  isLoggedIn: boolean = false;
+  userName: string = ''; // Will store userId for display
+
   // Subscriptions
   private subscriptions: Subscription[] = [];
+  private authStoreUnsubscribe: (() => void) | undefined;
 
   ngOnInit() {
-    // Initialize component
     this.initializeWidget();
+
+    // Subscribe to the Zustand store
+    // The listener now receives the full state, and we extract properties.
+    this.authStoreUnsubscribe = useAuthStore.subscribe(
+      (state: AuthState) => {
+        this.isLoggedIn = state.isLoggedIn;
+        this.userName = state.userId || ''; // Use userId for display name
+      }
+    );
+
+    // Set initial state from Zustand
+    const initialState = useAuthStore.getState();
+    this.isLoggedIn = initialState.isLoggedIn;
+    this.userName = initialState.userId || ''; // Use userId for display name
 
     // Set up periodic updates
     const updateInterval = setInterval(() => {
@@ -142,10 +164,13 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     // Clean up subscriptions
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    // Unsubscribe from Zustand store
+    if (this.authStoreUnsubscribe) {
+      this.authStoreUnsubscribe();
+    }
   }
 
   private initializeWidget() {
-    // Initialize with data if provided
     if (this.data?.counter !== undefined) {
       this.counter = this.data.counter;
     }
@@ -210,3 +235,4 @@ export class AngularWidgetComponent implements OnInit, OnDestroy {
     return classes.join(' ');
   }
 }
+

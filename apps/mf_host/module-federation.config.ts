@@ -14,6 +14,7 @@ export default createModuleFederationConfig({
     'react-router-dom': { singleton: true, strictVersion: true, eager: true },
     'react-i18next': { singleton: true, strictVersion: true, eager: true },
     'lucide-react': { singleton: true, strictVersion: true, eager: true },
+    '@mfx/shared-utils': { singleton: true, strictVersion: true, eager: true },
   },
   dts: false,
 });

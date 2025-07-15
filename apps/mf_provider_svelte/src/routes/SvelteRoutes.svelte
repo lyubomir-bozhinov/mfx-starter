@@ -21,7 +21,7 @@
     name: 'John Doe',
     email: 'john.doe@example.com',
     role: 'Developer',
-    joinDate: '2023-01-15',
+    joinDate: '2025-01-15',
     avatar: '👨‍💻'
   };
 

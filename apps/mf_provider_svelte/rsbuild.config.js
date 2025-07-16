@@ -19,7 +19,7 @@ export default defineConfig({
   server: {
     port: 3002,
     cors: {
-      origin: [defaultAllowedOrigins, 'https://example.com'],
+      origin: [defaultAllowedOrigins, 'https://example.com', process.env.MF_HOST_URL, process.env.MF_AANGULAR_URL],
     },
   },
 });

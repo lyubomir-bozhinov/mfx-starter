@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     port: 3000,
     cors: {
-      origin: [defaultAllowedOrigins, 'https://example.com'],
+      origin: [defaultAllowedOrigins, 'https://example.com', process.env.MF_ANGULAR_URL, process.env.MF_SVELTE_URL],
     },
   },
   html: {

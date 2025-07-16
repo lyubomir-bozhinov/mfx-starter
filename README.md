@@ -93,6 +93,22 @@ npm run dev -w mf_provider_angular
 npm run dev -w mf_provider_svelte
 ```
 
+### (Optional) Local Build+Previewt  Development with Custom Hostnames
+
+When running individual applications or using the `preview:host` scripts, you might encounter URLs like `host-react.mfx.com`, `provider-angular.mfx.com`, and `provider-svelte.mfx.com`. To ensure your browser can resolve these custom hostnames to your local development server, you need to add entries to your system's `hosts` file.
+
+**Example `hosts` file entries:**
+```bash
+127.0.0.1 host-react.mfx.com
+127.0.0.1 provider-angular.mfx.com
+127.0.0.1 provider-svelte.mfx.com
+
+- **Linux/macOS:** `/etc/hosts`
+- **Windows:** `C:\Windows\System32\drivers\etc\hosts`
+```
+
+Additionally, be aware that when microfrontends load resources from different origins (e.g., the host loading a provider), **Cross-Origin Resource Sharing (CORS)*- policies apply. Ensure your Rsbuild configurations for development servers are set up to allow the necessary CORS headers to prevent resource loading issues. **Therefore, the correct values for these hostnames must also be configured in the respective `.env` files for each project (e.g., `apps/mf_host/.env`), as commands like `build`use `cross-env env-cmd -f .env rsbuild build` to inject these environment variables, which Rsbuild then uses for CORS configuration.**
+
 ### Building for Production
 
 ```bash
@@ -104,6 +120,14 @@ npm run build -w mf_host
 npm run build -w mf_provider_angular
 npm run build -w mf_provider_svelte
 ```
+
+### Deployment Considerations:
+
+- **Unique URLs:*- Each microfrontend's build output (`dist` folder) should be deployed to a unique, publicly accessible URL or path (e.g., `https://your-app.com/`, `https://your-app.com/angular-mfe/`, `https://your-app.com/svelte-mfe/`).
+
+- **Host `remotes` Configuration:*- The host application's Module Federation configuration (`module-federation.config.ts`) must specify the full URLs to the Module Federation manifest files of the provider microfrontends it consumes. The base URLs for the providers are configurable via .env files.
+
+- **Shared Packages:*- Libraries like `@mfx/shared-utils`, `react`, `i18next`, and `zustand` are configured as `shared` singletons in Module Federation. This means the host application bundles and provides a single instance of these libraries, which is then consumed by the microfrontends. Changes to these shared packages typically require rebuilding and redeploying the host application.
 
 ### Running Tests
 
@@ -149,34 +173,33 @@ npm run cy:open
 ```
 
 ### Module Federation Configuration
-
 Each microfrontend exposes specific modules that can be consumed by the host application:
 
 **Host (mf_host):**
 - Consumes: `AngularWidget`, `SvelteWidget`, routing modules
-- Provides: Global navigation, authentication, notifications
+- Provides: Global navigation, authentication, notifications, **and shared singleton instances of core libraries (`react`, `i18next`, `zustand`) and `@mfx/shared-utils`.**
 
 **Angular Provider (mf_provider_angular):**
 - Exposes: `AngularWidget`, `AngularRoutes`
 - Technology: Angular 20+ with SCSS
+- **Consumes shared core libraries and `@mfx/shared-utils` from the host.**
 
 **Svelte Provider (mf_provider_svelte):**
 - Exposes: `SvelteWidget`, `SvelteRoutes`
 - Technology: Svelte 5+ with Tailwind CSS
+- **Consumes shared core libraries and `@mfx/shared-utils` from the host.**
 
 ### Data Flow & Communication
-
-1. **Shared State**: Zustand stores manage global state (authentication, user preferences)
-2. **Event System**: Custom event dispatcher for cross-MFE communication
+1. **Shared State**: Zustand stores manage global state (authentication, user preferences) **and are accessible as singletons across all microfrontends.**
+2. **Event System**: Custom event dispatcher for **decoupled, fire-and-forget cross-MFE communication.*- Microfrontends dispatch actions (e.g., item added, counter changed) which the host or other MFEs can listen to.
 3. **HTTP Client**: Shared Axios instance with authentication and error handling
-4. **Internationalization**: Centralized i18next configuration
+4. **Internationalization**: Centralized i18next configuration **ensuring consistent language across the entire application.**
 
 ### Error Handling Strategy
-
 - **Error Boundaries**: React Error Boundaries wrap each remote module
 - **Graceful Degradation**: Fallback UI when remote modules fail to load
 - **Global Error Handling**: HTTP interceptors catch and handle API errors
-- **User Feedback**: Global notification system for error reporting
+- **User Feedback**: Global notification system for error reporting **(triggered by `dispatchNotification` from any MFE).**
 
 ## 🛠️ Technologies Used
 
@@ -192,6 +215,7 @@ Each microfrontend exposes specific modules that can be consumed by the host app
 - **Zustand**: 5.0.6 (State management)
 - **Axios**: 1.6.5 (HTTP client)
 - **i18next**: 23.8.2 (Internationalization)
+- **react-i18next**: 13.5.0 (React bindings for i18next)
 
 ### Development Tools
 - **Testing**: Jest, Karma/Jasmine, Vitest, Cypress
@@ -232,6 +256,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Shared utilities and components
 - [x] Basic Authentication system mocks
 - [x] Error handling and graceful degradation
+- [x] Cross-MFE communication via shared event dispatcher
+- [x] Consistent i18n and Auth state across MFEs
 
 ### Phase 2: Enhanced Features 🚧
 - [ ] Advanced routing with nested microfrontends

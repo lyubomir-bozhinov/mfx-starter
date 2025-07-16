@@ -23,7 +23,7 @@ export default createConfig({
     devServer: {
       port: 3001,
       cors: {
-        origin: [defaultAllowedOrigins, 'https://example.com'],
+        origin: [defaultAllowedOrigins, 'https://example.com', process.env.MF_HOST_URL, process.env.MF_SVELTE_URL],
       },
     },
     assets: [],

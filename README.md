@@ -253,6 +253,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] React Host application
 - [x] Angular Provider application
 - [x] Svelte Provider application
+- [ ] React Provider application
+- [ ] Vue Provider application
 - [x] Shared utilities and components
 - [x] Basic Authentication system mocks
 - [x] Error handling and graceful degradation

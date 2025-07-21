@@ -255,6 +255,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Svelte Provider application
 - [ ] React Provider application
 - [ ] Vue Provider application
+- [ ] Web Components Provider application (Webpack 5)
 - [x] Shared utilities and components
 - [x] Basic Authentication system mocks
 - [x] Error handling and graceful degradation

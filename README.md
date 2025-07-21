@@ -123,11 +123,11 @@ npm run build -w mf_provider_svelte
 
 ### Deployment Considerations:
 
-- **Unique URLs:*- Each microfrontend's build output (`dist` folder) should be deployed to a unique, publicly accessible URL or path (e.g., `https://your-app.com/`, `https://your-app.com/angular-mfe/`, `https://your-app.com/svelte-mfe/`).
+- **Unique URLs:** Each microfrontend's build output (`dist` folder) should be deployed to a unique, publicly accessible URL or path (e.g., `https://your-app.com/`, `https://your-app.com/angular-mfe/`, `https://your-app.com/svelte-mfe/`).
 
-- **Host `remotes` Configuration:*- The host application's Module Federation configuration (`module-federation.config.ts`) must specify the full URLs to the Module Federation manifest files of the provider microfrontends it consumes. The base URLs for the providers are configurable via .env files.
+- **Host `remotes` Configuration:** The host application's Module Federation configuration (`module-federation.config.ts`) must specify the full URLs to the Module Federation manifest files of the provider microfrontends it consumes. The base URLs for the providers are configurable via .env files.
 
-- **Shared Packages:*- Libraries like `@mfx/shared-utils`, `react`, `i18next`, and `zustand` are configured as `shared` singletons in Module Federation. This means the host application bundles and provides a single instance of these libraries, which is then consumed by the microfrontends. Changes to these shared packages typically require rebuilding and redeploying the host application.
+- **Shared Packages:** Libraries like `@mfx/shared-utils`, `react`, `i18next`, and `zustand` are configured as `shared` singletons in Module Federation. This means the host application bundles and provides a single instance of these libraries, which is then consumed by the microfrontends. Changes to these shared packages typically require rebuilding and redeploying the host application.
 
 ### Running Tests
 

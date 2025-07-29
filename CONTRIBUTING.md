@@ -6,8 +6,8 @@ Thank you for your interest in contributing to MFX Starter! This document provid
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
-- npm >= 9.0.0
+- Node.js >= 24.0.0
+- npm >= 8.0.0
 - Git
 
 ### Setting Up the Development Environment

@@ -107,7 +107,7 @@ When running individual applications or using the `preview:host` scripts, you mi
 - **Windows:** `C:\Windows\System32\drivers\etc\hosts`
 ```
 
-Additionally, be aware that when microfrontends load resources from different origins (e.g., the host loading a provider), **Cross-Origin Resource Sharing (CORS)*- policies apply. Ensure your Rsbuild configurations for development servers are set up to allow the necessary CORS headers to prevent resource loading issues. **Therefore, the correct values for these hostnames must also be configured in the respective `.env` files for each project (e.g., `apps/mf_host/.env`), as commands like `build`use `cross-env env-cmd -f .env rsbuild build` to inject these environment variables, which Rsbuild then uses for CORS configuration.**
+Additionally, be aware that when microfrontends load resources from different origins (e.g., the host loading a provider), **Cross-Origin Resource Sharing (CORS)** policies apply. Ensure your Rsbuild configurations for development servers are set up to allow the necessary CORS headers to prevent resource loading issues. **Therefore, the correct values for these hostnames must also be configured in the respective `.env` files for each project (e.g., `apps/mf_host/.env`), as commands like `build`use `cross-env env-cmd -f .env rsbuild build` to inject these environment variables, which Rsbuild then uses for CORS configuration.**
 
 ### Building for Production
 

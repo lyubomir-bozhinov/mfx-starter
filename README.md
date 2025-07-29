@@ -93,7 +93,7 @@ npm run dev -w mf_provider_angular
 npm run dev -w mf_provider_svelte
 ```
 
-### (Optional) Local Build+Previewt  Development with Custom Hostnames
+### (Optional) Local Build+Preview Development with Custom Hostnames
 
 When running individual applications or using the `preview:host` scripts, you might encounter URLs like `host-react.mfx.com`, `provider-angular.mfx.com`, and `provider-svelte.mfx.com`. To ensure your browser can resolve these custom hostnames to your local development server, you need to add entries to your system's `hosts` file.
 

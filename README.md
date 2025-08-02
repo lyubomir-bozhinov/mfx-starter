@@ -250,6 +250,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Phase 1: Core Foundation ✅
 - [x] Basic Module Federation setup
 - [x] Monorepo with npm workspaces
+- [ ] Switch to [Nx](https://nx.dev/)  for a better monorepo experience
 - [ ] Build & deploy GutHub Actions pipeline
 - [x] React Host application
 - [x] Angular Provider application

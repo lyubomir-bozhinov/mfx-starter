@@ -1,6 +1,6 @@
 # MFX Starter
 
-[![CI Status](https://github.com/lyubomir-bozhinov/mfx-starter/workflows/CI/badge.svg)](https://github.com/lyubomir-bozhinov/mfx-starter/actions)
+<!-- [![CI Status](https://github.com/lyubomir-bozhinov/mfx-starter/workflows/CI/badge.svg)](https://github.com/lyubomir-bozhinov/mfx-starter/actions) -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![Buy Me a Coffee](https://img.shields.io/badge/-Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/lboz)

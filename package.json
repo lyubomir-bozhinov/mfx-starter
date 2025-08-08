@@ -6,14 +6,16 @@
   "type": "module",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "packages/eslint-config"
   ],
   "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx,.svelte",
     "start:all": "concurrently \"npm run dev -w mf_host\" \"npm run dev -w mf_provider_angular\" \"npm run dev -w mf_provider_svelte\"",
     "build:all": "concurrently \"npm run build -w mf_host\" \"npm run build:rs -w mf_provider_angular\" \"npm run build -w mf_provider_svelte\"",
     "test:all": "concurrently \"npm run test -w mf_host\" \"npm run test -w mf_provider_angular\" \"npm run test -w mf_provider_svelte\"",
-    "lint:all": "concurrently \"npm run lint -w mf_host\" \"npm run lint -w mf_provider_angular\" \"npm run lint -w mf_provider_svelte\"",
-    "format:all": "concurrently \"npm run format -w mf_host\" \"npm run format -w mf_provider_angular\" \"npm run format -w mf_provider_svelte\"",
+    "lint:all": "npm run lint",
+    "format:all": "prettier --write --ignore-unknown \"**/*.{ts,tsx,js,jsx,json,css,scss,md,html,svelte}\" || true",
     "type-check:all": "concurrently \"npm run type-check -w mf_host\" \"npm run type-check -w mf_provider_angular\" \"npm run type-check -w mf_provider_svelte\"",
     "clean:all": "concurrently \"npm run clean -w mf_host\" \"npm run clean -w mf_provider_angular\" \"npm run clean -w mf_provider_svelte\" \"npm run clean -w @mfx/shared-utils\" \"npm run clean -w @mfx/ui-components\"",
     "postinstall": "npm run build -w @mfx/shared-utils && npm run build -w @mfx/ui-components",
@@ -22,9 +24,20 @@
     "e2e": "npm run build:all && start-server-and-test start:all http://localhost:3000 cy:run"
   },
   "devDependencies": {
+    "@module-federation/rsbuild-plugin": "^0.18.0",
+    "@nx/angular-rsbuild": "^21.2.0",
+    "@rsbuild/core": "^1.4.15",
+    "@rsbuild/plugin-image-compress": "^1.3.1",
+    "@rsbuild/plugin-react": "^1.3.5",
+    "@rsbuild/plugin-sass": "^1.3.5",
+    "@rsbuild/plugin-svelte": "^1.0.11",
+    "@rsbuild/plugin-svgr": "^1.2.2",
+    "@rsbuild/plugin-type-check": "^1.2.4",
     "@types/node": "20.11.10",
     "concurrently": "8.2.2",
+    "cross-env": "^10.0.0",
     "cypress": "13.6.3",
+    "env-cmd": "^10.1.0",
     "start-server-and-test": "2.0.3",
     "typescript": "5.3.3"
   },
@@ -53,4 +66,3 @@
     "url": "https://github.com/lyubomir-bozhinov/mfx-starter/issues"
   }
 }
-

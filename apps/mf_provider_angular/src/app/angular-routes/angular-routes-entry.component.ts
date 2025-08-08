@@ -35,9 +35,7 @@ export const ANGULAR_MFE_ROUTES: Routes = [
   imports: [
     RouterOutlet,
     RouterLink,       // Explicitly import RouterLink for standalone components
-    RouterLinkActive, // Explicitly import RouterLinkActive for standalone components
-    DashboardComponent,
-    SettingsComponent
+    RouterLinkActive // Explicitly import RouterLinkActive for standalone components
   ],
   providers: []
 })
